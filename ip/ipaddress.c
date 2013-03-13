@@ -28,6 +28,7 @@
 #include <linux/netdevice.h>
 #include <linux/if_arp.h>
 #include <linux/sockios.h>
+#include <linux/can.h>
 
 #include "rt_names.h"
 #include "utils.h"
@@ -76,6 +77,8 @@ static void usage(void)
 	fprintf(stderr, "IFADDR := PREFIX | ADDR peer PREFIX\n");
 	fprintf(stderr, "          [ broadcast ADDR ] [ anycast ADDR ]\n");
 	fprintf(stderr, "          [ label STRING ] [ scope SCOPE-ID ]\n");
+	fprintf(stderr, "          | j1939 J1939IFADDR\n");
+	fprintf(stderr, "          \n");
 	fprintf(stderr, "SCOPE-ID := [ host | link | global | NUMBER ]\n");
 	fprintf(stderr, "FLAG-LIST := [ FLAG-LIST ] FLAG\n");
 	fprintf(stderr, "FLAG  := [ permanent | dynamic | secondary | primary |\n");
@@ -85,6 +88,10 @@ static void usage(void)
 	fprintf(stderr, "CONFFLAG  := [ home | nodad | mngtmpaddr | noprefixroute ]\n");
 	fprintf(stderr, "LIFETIME := [ valid_lft LFT ] [ preferred_lft LFT ]\n");
 	fprintf(stderr, "LFT := forever | SECONDS\n");
+	fprintf(stderr, "          \n");
+	fprintf(stderr, "J1939IFADDR := [SA] [ name NODENAME ]\n");
+	fprintf(stderr, "SA := U8\n");
+	fprintf(stderr, "NODENAME := U64\n");
 
 	exit(-1);
 }
@@ -566,6 +573,19 @@ int print_linkinfo(const struct sockaddr_nl *who,
 	}
 
 	fprintf(fp, "\n");
+
+	if (do_link && tb[IFLA_AF_SPEC]) {
+		struct rtattr *af[AF_MAX];
+
+		parse_rtattr_nested(af, AF_MAX, tb[IFLA_AF_SPEC]);
+		if (af[AF_CAN]) {
+			struct rtattr *prot[CAN_NPROTO];
+
+			parse_rtattr_nested(prot, CAN_NPROTO, af[AF_CAN]);
+			if (prot[CAN_J1939])
+				fprintf(fp, "    %s\n", j1939_link_attrtop(prot[CAN_J1939]));
+		}
+	}
 	fflush(fp);
 	return 0;
 }
@@ -625,6 +645,10 @@ int print_addrinfo(const struct sockaddr_nl *who, struct nlmsghdr *n,
 		     n->nlmsg_len - NLMSG_LENGTH(sizeof(*ifa)));
 
 	ifa_flags = get_ifa_flags(ifa, rta_tb[IFA_FLAGS]);
+	if (ifa->ifa_family == AF_CAN) {
+		af_can_protocol = ifa->ifa_prefixlen;
+		ifa->ifa_prefixlen = 0;
+	}
 
 	if (!rta_tb[IFA_LOCAL])
 		rta_tb[IFA_LOCAL] = rta_tb[IFA_ADDRESS];
@@ -691,6 +715,16 @@ int print_addrinfo(const struct sockaddr_nl *who, struct nlmsghdr *n,
 		fprintf(fp, "    dnet ");
 	else if (ifa->ifa_family == AF_IPX)
 		fprintf(fp, "     ipx ");
+	else if (ifa->ifa_family == AF_CAN)
+		/* ifa->ifa_prefixlen is abused for protocol number */
+		switch (af_can_protocol) {
+		case CAN_J1939:
+			sprotocol = "j1939";
+			break;
+		default:
+			fprintf(fp, "    can-%i ", af_can_protocol);
+			break;
+		}
 	else
 		fprintf(fp, "    family %d ", ifa->ifa_family);
 
@@ -699,8 +733,9 @@ int print_addrinfo(const struct sockaddr_nl *who, struct nlmsghdr *n,
 					      RTA_PAYLOAD(rta_tb[IFA_LOCAL]),
 					      RTA_DATA(rta_tb[IFA_LOCAL]),
 					      abuf, sizeof(abuf)));
-
-		if (rta_tb[IFA_ADDRESS] == NULL ||
+		if (ifa->ifa_family == AF_CAN)
+			; /* do nothing, ignore the IFA_ADDRESS & PREFIX */
+		else if (rta_tb[IFA_ADDRESS] == NULL ||
 		    memcmp(RTA_DATA(rta_tb[IFA_ADDRESS]), RTA_DATA(rta_tb[IFA_LOCAL]),
 			   ifa->ifa_family == AF_INET ? 4 : 16) == 0) {
 			fprintf(fp, "/%d ", ifa->ifa_prefixlen);
@@ -1483,6 +1518,14 @@ static int ipaddr_modify(int cmd, int flags, int argc, char **argv)
 			ifa_flags |= IFA_F_MANAGETEMPADDR;
 		} else if (strcmp(*argv, "noprefixroute") == 0) {
 			ifa_flags |= IFA_F_NOPREFIXROUTE;
+		} else if (matches(*argv, "j1939") == 0) {
+			int ret;
+
+			ret = j1939_addr_args(argc, argv, &req.n, sizeof(req));
+			if (ret < 0)
+				return ret;
+			argc -= ret;
+			argv += ret;
 		} else {
 			if (strcmp(*argv, "local") == 0) {
 				NEXT_ARG();

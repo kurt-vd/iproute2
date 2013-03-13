@@ -28,6 +28,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <errno.h>
+#include <linux/can.h>
 
 
 #include "utils.h"
@@ -621,7 +622,10 @@ int __get_user_hz(void)
 	return sysconf(_SC_CLK_TCK);
 }
 
-const char *rt_addr_n2a(int af, const void *addr, char *buf, int buflen)
+int af_can_protocol;
+
+const char *rt_addr_n2a_2(int af, int len, const void *addr,
+		char *buf, int buflen)
 {
 	switch (af) {
 	case AF_INET:
@@ -635,6 +639,11 @@ const char *rt_addr_n2a(int af, const void *addr, char *buf, int buflen)
 		memcpy(dna.a_addr, addr, 2);
 		return dnet_ntop(af, &dna, buf, buflen);
 	}
+	case AF_CAN:
+		switch (af_can_protocol) {
+		case CAN_J1939:
+			return j1939_ntop(af, addr, len, buf, buflen);
+		}
 	default:
 		return "???";
 	}
@@ -699,7 +708,7 @@ const char *format_host(int af, int len, const void *addr,
 			char *buf, int buflen)
 {
 #ifdef RESOLVE_HOSTNAMES
-	if (resolve_hosts) {
+	if (resolve_hosts && (af == AF_INET || af == AF_INET6)) {
 		const char *n;
 
 		if (len <= 0) {
@@ -728,7 +737,7 @@ const char *format_host(int af, int len, const void *addr,
 			return n;
 	}
 #endif
-	return rt_addr_n2a(af, addr, buf, buflen);
+	return rt_addr_n2a_2(af, len, addr, buf, buflen);
 }
 
 
