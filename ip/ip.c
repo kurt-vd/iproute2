@@ -46,7 +46,7 @@ static void usage(void)
 "where  OBJECT := { link | addr | addrlabel | route | rule | neigh | ntable |\n"
 "                   tunnel | tuntap | maddr | mroute | mrule | monitor | xfrm }\n"
 "       OPTIONS := { -V[ersion] | -s[tatistics] | -d[etails] | -r[esolve] |\n"
-"                    -f[amily] { inet | inet6 | ipx | dnet | link } |\n"
+"                    -f[amily] { inet | inet6 | ipx | dnet | link  | can} |\n"
 "                    -l[oops] { maximum-addr-flush-attempts } |\n"
 "                    -o[neline] | -t[imestamp] | -b[atch] [filename] |\n"
 "                    -rc[vbuf] [size]}\n");
@@ -181,6 +181,8 @@ int main(int argc, char **argv)
 				preferred_family = AF_PACKET;
 			else if (strcmp(argv[1], "ipx") == 0)
 				preferred_family = AF_IPX;
+			else if (strcmp(argv[1], "can") == 0)
+				preferred_family = AF_CAN;
 			else if (strcmp(argv[1], "help") == 0)
 				usage();
 			else
