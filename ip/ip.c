@@ -52,7 +52,7 @@ static void usage(void)
 "                   netns | l2tp | fou | tcp_metrics | token | netconf }\n"
 "       OPTIONS := { -V[ersion] | -s[tatistics] | -d[etails] | -r[esolve] |\n"
 "                    -h[uman-readable] | -iec |\n"
-"                    -f[amily] { inet | inet6 | ipx | dnet | bridge | link } |\n"
+"                    -f[amily] { inet | inet6 | ipx | dnet | bridge | link | can } |\n"
 "                    -4 | -6 | -I | -D | -B | -0 |\n"
 "                    -l[oops] { maximum-addr-flush-attempts } |\n"
 "                    -o[neline] | -t[imestamp] | -ts[hort] | -b[atch] [filename] |\n"
@@ -202,6 +202,8 @@ int main(int argc, char **argv)
 				preferred_family = AF_IPX;
 			else if (strcmp(argv[1], "bridge") == 0)
 				preferred_family = AF_BRIDGE;
+			else if (strcmp(argv[1], "can") == 0)
+				preferred_family = AF_CAN;
 			else if (strcmp(argv[1], "help") == 0)
 				usage();
 			else
