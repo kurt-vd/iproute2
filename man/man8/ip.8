@@ -30,7 +30,7 @@ ip \- show / manipulate routing, devices, policy routing and tunnels
 \fB\-s\fR[\fItatistics\fR] |
 \fB\-r\fR[\fIesolve\fR] |
 \fB\-f\fR[\fIamily\fR] {
-.BR inet " | " inet6 " | " ipx " | " dnet " | " link " } | "
+.BR inet " | " inet6 " | " ipx " | " dnet " | " link " | " can " } | "
 \fB\-o\fR[\fIneline\fR] }
 
 
@@ -67,9 +67,9 @@ Zero (0) means loop until all addresses are removed.
 .TP
 .BR "\-f" , " \-family " <FAMILY>
 Specifies the protocol family to use. The protocol family identifier can be one of
-.BR "inet" , " inet6" , " bridge" , " ipx" , " dnet"
+.BR "inet" , " inet6" , "bridge" , "ipx" , "dnet", "link"
 or
-.BR link .
+.BR "can" ,
 If this option is not present,
 the protocol family is guessed from other arguments.  If the rest
 of the command line does not give enough information to guess the
