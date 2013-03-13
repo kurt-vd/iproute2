@@ -25,6 +25,7 @@
 #include <linux/pkt_sched.h>
 #include <time.h>
 #include <sys/time.h>
+#include <linux/can.h>
 
 
 #include "utils.h"
@@ -499,7 +500,8 @@ int __get_user_hz(void)
 	return sysconf(_SC_CLK_TCK);
 }
 
-const char *rt_addr_n2a(int af, int len, const void *addr, char *buf, int buflen)
+const char *rt_addr_proto_n2a(int af, int protocol, int len, const void *addr,
+		char *buf, int buflen)
 {
 	switch (af) {
 	case AF_INET:
@@ -513,6 +515,9 @@ const char *rt_addr_n2a(int af, int len, const void *addr, char *buf, int buflen
 		memcpy(dna.a_addr, addr, 2);
 		return dnet_ntop(af, &dna, buf, buflen);
 	}
+	case AF_CAN:
+		switch (protocol) {
+		}
 	default:
 		return "???";
 	}
