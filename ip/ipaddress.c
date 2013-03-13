@@ -719,7 +719,7 @@ int print_addrinfo(const struct sockaddr_nl *who, struct nlmsghdr *n,
 		/* ifa->ifa_prefixlen is abused for protocol number */
 		switch (af_can_protocol) {
 		case CAN_J1939:
-			sprotocol = "j1939";
+			fprintf(fp, "    can-j1939 ");
 			break;
 		default:
 			fprintf(fp, "    can-%i ", af_can_protocol);
