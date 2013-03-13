@@ -140,7 +140,9 @@ ip \- show / manipulate routing, devices, policy routing and tunnels
 .B  label
 .IR STRING " ] [ "
 .B  scope
-.IR SCOPE-ID " ]"
+.IR SCOPE-ID " ] | "
+.B  j1939
+.IR IFADDRJ1939 " ] "
 
 .ti -8
 .IR SCOPE-ID " := "
@@ -154,6 +156,15 @@ ip \- show / manipulate routing, devices, policy routing and tunnels
 .IR FLAG " := "
 .RB "[ " permanent " | " dynamic " | " secondary " | " primary " | "\
 tentative " | " deprecated " | " dadfailed " | " temporary " ]"
+
+.ti -8
+.IR J1939IFADDR " := [ " SA " ] [ "
+.B  name
+.IR " NODENAME " ]
+.br
+.IR SA " := " U8
+.br
+.IR NODENAME " := " U64
 
 .ti -8
 .BR "ip addrlabel" " { " add " | " del " } " prefix
