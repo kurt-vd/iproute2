@@ -104,10 +104,16 @@ extern __u8* hexstring_a2n(const char *str, __u8 *buf, int blen);
 extern int af_bit_len(int af);
 extern int af_byte_len(int af);
 
+extern int af_can_protocol;
+
 extern const char *format_host(int af, int len, const void *addr,
 			       char *buf, int buflen);
-extern const char *rt_addr_n2a(int af, const void *addr,
-			       char *buf, int buflen);
+extern const char *rt_addr_n2a_2(int af, int len, const void *addr, char *buf, int buflen);
+static inline const char *rt_addr_n2a(int af, const void *addr,
+		char *buf, int buflen)
+{
+	return rt_addr_n2a_2(af, 0, addr, buf, buflen);
+}
 
 void missarg(const char *) __attribute__((noreturn));
 void invarg(const char *, const char *) __attribute__((noreturn));
@@ -123,8 +129,12 @@ const char *ipx_ntop(int af, const void *addr, char *str, size_t len);
 int ipx_pton(int af, const char *src, void *addr);
 
 /* j1939 */
+extern const char *j1939_ntop(int af, const void *addr, size_t vlen,
+		char *str, size_t len);
 extern const char *j1939_link_attrtop(struct rtattr *nla);
 
+extern int j1939_addr_args(int argc, char *argv[],
+		struct nlmsghdr *msg, int msg_size);
 extern int j1939_link_args(int argc, char *argv[],
 		struct nlmsghdr *msg, int msg_size);
 
