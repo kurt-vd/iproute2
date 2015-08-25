@@ -734,7 +734,8 @@ int print_addrinfo(const struct sockaddr_nl *who, struct nlmsghdr *n,
 					      RTA_DATA(rta_tb[IFA_LOCAL]),
 					      abuf, sizeof(abuf)));
 		if (ifa->ifa_family == AF_CAN)
-			; /* do nothing, ignore the IFA_ADDRESS & PREFIX */
+			/* ignore the IFA_ADDRESS & PREFIX */
+			fprintf(fp, " ");
 		else if (rta_tb[IFA_ADDRESS] == NULL ||
 		    memcmp(RTA_DATA(rta_tb[IFA_ADDRESS]), RTA_DATA(rta_tb[IFA_LOCAL]),
 			   ifa->ifa_family == AF_INET ? 4 : 16) == 0) {
